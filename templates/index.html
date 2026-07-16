@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Breast Cancer Prediction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F0F4F8;
+    --card:#FFFFFF;
+    --primary:#2F6F5E;
+    --primary-dark:#234F42;
+    --danger:#C0574A;
+    --text:#1E2A28;
+    --muted:#66756F;
+    --border:#DCE4E0;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    font-family:'Inter',sans-serif;
+    color:var(--text);
+    padding:32px 16px 60px;
+  }
+  .container{max-width:920px;margin:0 auto;}
+
+  .header{text-align:center;margin-bottom:32px;}
+  .header h1{
+    font-family:'Poppins',sans-serif;
+    font-weight:600;
+    font-size:28px;
+    margin:0 0 8px;
+    color:var(--primary-dark);
+  }
+  .header p{color:var(--muted);font-size:14.5px;max-width:560px;margin:0 auto;}
+
+  .card{
+    background:var(--card);
+    border-radius:12px;
+    box-shadow:0 2px 10px rgba(30,50,45,0.06);
+    border:1px solid var(--border);
+    padding:28px 30px;
+    margin-bottom:24px;
+  }
+
+  .section-title{
+    font-family:'Poppins',sans-serif;
+    font-weight:600;
+    font-size:15px;
+    color:var(--primary-dark);
+    margin:0 0 18px;
+    padding-bottom:8px;
+    border-bottom:2px solid var(--border);
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:16px 20px;
+  }
+
+  .field{display:flex;flex-direction:column;gap:6px;}
+  .field label{font-size:13px;font-weight:500;color:var(--text);}
+  .field input{
+    padding:10px 12px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    font-size:14px;
+    font-family:'Inter',sans-serif;
+    color:var(--text);
+    background:#FAFCFB;
+  }
+  .field input:focus{
+    outline:none;
+    border-color:var(--primary);
+    box-shadow:0 0 0 3px rgba(47,111,94,0.12);
+  }
+
+  .actions{
+    display:flex;
+    justify-content:center;
+    gap:14px;
+    margin-top:8px;
+  }
+  button{
+    font-family:'Poppins',sans-serif;
+    font-weight:600;
+    font-size:15px;
+    padding:13px 32px;
+    border-radius:8px;
+    border:none;
+    cursor:pointer;
+    transition:background .15s ease, transform .1s ease;
+  }
+  .btn-predict{background:var(--primary);color:#fff;}
+  .btn-predict:hover{background:var(--primary-dark);}
+  .btn-predict:active{transform:scale(0.98);}
+  .btn-reset{background:#fff;color:var(--muted);border:1px solid var(--border);}
+  .btn-reset:hover{border-color:var(--muted);color:var(--text);}
+
+  .result{
+    display:none;
+    text-align:center;
+    padding:26px;
+    border-radius:12px;
+    margin-top:6px;
+  }
+  .result.show{display:block;}
+  .result.benign{background:#E6F2EC;border:1px solid #B7DAC7;}
+  .result.malignant{background:#FBEAE7;border:1px solid #E9BEB6;}
+
+  .result .verdict{
+    font-family:'Poppins',sans-serif;
+    font-size:22px;
+    font-weight:700;
+  }
+  .result.benign .verdict{color:var(--primary-dark);}
+  .result.malignant .verdict{color:var(--danger);}
+  .result .confidence{
+    font-size:14px;
+    color:var(--muted);
+    margin-top:6px;
+  }
+  .result .bar-track{
+    height:8px;
+    background:#E3E9E6;
+    border-radius:4px;
+    margin:16px auto 0;
+    max-width:340px;
+    overflow:hidden;
+  }
+  .result .bar-fill{height:100%;border-radius:4px;transition:width .4s ease;}
+  .result.benign .bar-fill{background:var(--primary);}
+  .result.malignant .bar-fill{background:var(--danger);}
+
+  .disclaimer{
+    text-align:center;
+    font-size:12px;
+    color:var(--muted);
+    margin-top:20px;
+  }
+
+  @media (max-width:600px){
+    .card{padding:22px 18px;}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>Breast Cancer Prediction Tool</h1>
+    <p>Enter the fifteen cell nucleus measurements below to estimate whether the sample is more likely benign or malignant.</p>
+  </div>
+
+  <form id="predictForm" onsubmit="return false;">
+
+    <div class="card">
+      <div class="section-title">Mean Values</div>
+      <div class="grid" id="grp-mean"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Error Values</div>
+      <div class="grid" id="grp-error"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Worst Values</div>
+      <div class="grid" id="grp-worst"></div>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn-predict" id="predictBtn">Predict</button>
+      <button type="button" class="btn-reset" id="resetBtn">Reset</button>
+    </div>
+
+    <div class="result" id="resultCard">
+      <div class="verdict" id="verdictText">--</div>
+      <div class="confidence" id="confidenceText">--</div>
+      <div class="bar-track"><div class="bar-fill" id="barFill" style="width:0%"></div></div>
+    </div>
+
+  </form>
+
+  <div class="disclaimer">
+    This tool is for educational/demo purposes only and is not a validated medical diagnostic device.
+  </div>
+
+</div>
+
+<script>
+// [key, label, unit, mean, std, weight, placeholder]
+const FEATURES = {
+  mean: [
+    ["mean_texture",      "Mean Texture",            "",     19.29, 4.30,  0.55, "19.3"],
+    ["mean_area",         "Mean Area",                "px²",  654.9, 351.9, 0.75, "650"],
+    ["mean_compactness",  "Mean Compactness",         "",     0.104, 0.0528,0.55, "0.10"],
+    ["mean_concave_pts",  "Mean Concave Points",      "",     0.0489,0.0388,0.95, "0.05"],
+  ],
+  error: [
+    ["radius_error",       "Radius Error",            "",    0.405, 0.277, 0.55, "0.40"],
+    ["area_error",         "Area Error",              "px²", 40.34, 45.49, 0.65, "40"],
+    ["smoothness_error",   "Smoothness Error",        "",    0.0070,0.0030,0.15, "0.007"],
+    ["compactness_error",  "Compactness Error",       "",    0.0254,0.0179,0.30, "0.025"],
+    ["fractal_dim_error",  "Fractal Dimension Error", "",    0.00379,0.00265,0.20, "0.0038"],
+  ],
+  worst: [
+    ["worst_texture",     "Worst Texture",            "",    25.68, 6.15,  0.60, "25.7"],
+    ["worst_perimeter",   "Worst Perimeter",          "mm",  107.26,33.60, 0.90, "107"],
+    ["worst_smoothness",  "Worst Smoothness",         "",    0.132, 0.0228,0.35, "0.13"],
+    ["worst_concavity",   "Worst Concavity",          "",    0.272, 0.209, 0.75, "0.27"],
+    ["worst_concave_pts", "Worst Concave Points",     "",    0.114, 0.0657,1.05, "0.11"],
+    ["worst_symmetry",    "Worst Symmetry",           "",    0.290, 0.0619,0.45, "0.29"],
+  ]
+};
+
+const allFeatures = [...FEATURES.mean, ...FEATURES.error, ...FEATURES.worst];
+
+function buildFields(){
+  const grids = { mean:document.getElementById('grp-mean'), error:document.getElementById('grp-error'), worst:document.getElementById('grp-worst') };
+  Object.keys(FEATURES).forEach(group=>{
+    FEATURES[group].forEach(([key,label,unit,mean,std,weight,placeholder])=>{
+      const wrap = document.createElement('div');
+      wrap.className='field';
+      wrap.innerHTML = `
+        <label for="${key}">${label}${unit?` (${unit})`:""}</label>
+        <input type="number" step="any" id="${key}" placeholder="e.g. ${placeholder}">
+      `;
+      grids[group].appendChild(wrap);
+    });
+  });
+}
+
+function predict(){
+  let z = 0, wsum = 0, filled = 0;
+  allFeatures.forEach(([key,label,unit,mean,std,weight])=>{
+    const el = document.getElementById(key);
+    const raw = el.value.trim();
+    const val = raw === "" ? mean : parseFloat(raw); // default to population mean if left blank
+    if(raw !== "") filled++;
+    const standardized = (val - mean) / std;
+    z += weight * standardized;
+    wsum += weight;
+  });
+
+  const avgZ = z / wsum;
+  const scaled = avgZ * 1.35;
+  const prob = 1 / (1 + Math.exp(-scaled)); // probability leaning malignant
+  const pct = Math.round(prob * 100);
+
+  const resultCard = document.getElementById('resultCard');
+  const verdictText = document.getElementById('verdictText');
+  const confidenceText = document.getElementById('confidenceText');
+  const barFill = document.getElementById('barFill');
+
+  resultCard.classList.add('show');
+
+  if(prob >= 0.5){
+    resultCard.className = 'result show malignant';
+    verdictText.textContent = 'Malignant';
+    confidenceText.textContent = `Estimated confidence: ${pct}%  ·  ${filled}/15 fields entered`;
+    barFill.style.width = pct + '%';
+  } else {
+    resultCard.className = 'result show benign';
+    verdictText.textContent = 'Benign';
+    confidenceText.textContent = `Estimated confidence: ${100-pct}%  ·  ${filled}/15 fields entered`;
+    barFill.style.width = (100-pct) + '%';
+  }
+
+  resultCard.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function resetForm(){
+  allFeatures.forEach(([key])=>{
+    document.getElementById(key).value = "";
+  });
+  document.getElementById('resultCard').className = 'result';
+}
+
+buildFields();
+document.getElementById('predictBtn').addEventListener('click', predict);
+document.getElementById('resetBtn').addEventListener('click', resetForm);
+</script>
+</body>
+</html>
