@@ -8,10 +8,8 @@ model = joblib.load(os.path.join(os.path.dirname(__file__), "cancerdata.pkl"))
 
 FEATURES = [
     "mean_texture", "mean_area", "mean_compactness", "mean_concave_pts",
-    "radius_error", "area_error", "smoothness_error", "compactness_error",
-    "fractal_dim_error", "worst_texture", "worst_perimeter",
-    "worst_smoothness", "worst_concavity", "worst_concave_pts",
-    "worst_symmetry"
+     "area_error","fractal_dim_error", "worst_texture", "worst_perimeter",
+    "worst_smoothness","worst_concave_pts","worst_symmetry"
 ]
 
 @app.route("/", methods=["GET"])
